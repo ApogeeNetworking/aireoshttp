@@ -117,8 +117,39 @@ type ApDetail struct {
 	SpeedDuplex string `json:"EthSpeed"`
 }
 
+// ApDetailRes ...
+type ApDetailRes struct {
+	Data ApDetail `json:"Data"`
+}
+
 // GetAp retrieves Detailed information of AP from Cisco WLC
 func (c *Client) GetAp(mac string) (ApDetail, error) {
-	// ep := "/data/rfdashboard/apview_clientsdetails.html"
-	return ApDetail{}, nil
+	ep := "/data/rfdashboard/apview_general.html"
+	ep += "?deviceMacAddress=" + mac
+	res, err := c.MakeReq(ep)
+	if err != nil {
+		return ApDetail{}, err
+	}
+	defer res.Body.Close()
+	var ap ApDetailRes
+	json.NewDecoder(res.Body).Decode(&ap)
+	return ap.Data, nil
+}
+
+// WlcInfo properties of a Cisco WLC
+type WlcInfo struct {
+	Name      string `json:"sysname"`
+	Model     string `json:"prodid"`
+	Platform  string `json:"platform"`
+	Serial    string `json:"serial"`
+	Version   string `json:"version"`
+	ApInUse   int    `json:"apinuse"`
+	ApMax     int    `json:"apmax"`
+	WlanCount int    `json:"wlanCount"`
+	UpTime    [4]int // Days, Hours, Minutes, Seconds
+}
+
+// GetSysInfo retrieves Detailed information of AP from Cisco WLC
+func (c *Client) GetSysInfo() {
+	// ep := "/data/system_information.html"
 }
