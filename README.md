@@ -1,7 +1,7 @@
 # Cisco Wireless LAN Controller 
 I do not advise using this as it uses the WLC frontend endpoints for authentication and data retrieval (but I'd rather use this than SSH)
 
-This integration was testing on a WLC running version 8.5
+This integration was tested on a WLC running version 8.5
 
 ## Installation
 
