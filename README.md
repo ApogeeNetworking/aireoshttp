@@ -34,10 +34,31 @@ func main() {
     if err != nil {
         log.Fatalf("%v", err)
     }
-    aps, err := cwlc.GetAps()
+    aps, err := cwlc.GetAps() // Returns cwlc.[]AP (MacAddr, Name)
     if err != nil {
         log.Fatalf("%v", err)
     }
-    fmt.Println(aps)
+    // Get AP Details Concurrently
+    var wg sync.WaitGroup
+    // Throttle the Number of Simultaneous Requests
+    sem := make(chan struct{}, 5)
+    var apDetails []cwlc.ApDetail
+    for _, ap := range aps {
+        sem <- struct{}{} // Add to the Semaphore
+        wg.Add(1)
+        go func(ap cwlc.AP) {
+            defer func() {
+                <-sem // Release the Resource
+                wg.Done()
+            }()
+            d, _ := wlc.GetAp(ap.MacAddr)
+            apDetails = append(apDetails, d)
+        }(ap)
+    }
+    wg.Wait()
+    /**
+        ApDetail = Name, MacAddr, IPAddr, RemoteSW, RemoteIntf ...
+        Refer to cwlc.go for Type Declaration 
+    */
 }
 ```
