@@ -51,7 +51,7 @@ func main() {
                 <-sem // Release the Resource
                 wg.Done()
             }()
-            d, _ := wlc.GetAp(ap.MacAddr)
+            d, _ := wlc.GetApDetails(ap.MacAddr)
             apDetails = append(apDetails, d)
         }(ap)
     }

@@ -125,7 +125,7 @@ type ApDetailRes struct {
 }
 
 // GetAp retrieves Detailed information of AP from Cisco WLC
-func (c *Client) GetAp(mac string) (ApDetail, error) {
+func (c *Client) GetApDetails(mac string) (ApDetail, error) {
 	ep := "/data/rfdashboard/apview_general.html"
 	ep += "?deviceMacAddress=" + mac
 	res, err := c.MakeReq(ep)
