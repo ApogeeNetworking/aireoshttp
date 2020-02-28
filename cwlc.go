@@ -39,13 +39,15 @@ func New(host, user, pass string, ignoreSSL bool) *Client {
 
 // MakeReq performs an HTTP Request for our Client
 func (c *Client) MakeReq(path string) (*http.Response, error) {
+	if c.cookie == nil {
+		return nil, fmt.Errorf("you must be authenticated first")
+	}
 	req, err := http.NewRequest("GET", c.BaseURL+path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
 	}
-	if c.cookie != nil {
-		req.AddCookie(c.cookie)
-	}
+	// Add sessionId Cookie
+	req.AddCookie(c.cookie)
 	res, err := c.http.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request failed: %v", err)
@@ -150,6 +152,14 @@ type WlcInfo struct {
 }
 
 // GetSysInfo retrieves Detailed information of AP from Cisco WLC
-func (c *Client) GetSysInfo() {
-	// ep := "/data/system_information.html"
+func (c *Client) GetSysInfo() (WlcInfo, error) {
+	ep := "/data/system_information.html"
+	res, err := c.MakeReq(ep)
+	if err != nil {
+		return WlcInfo{}, err
+	}
+	defer res.Body.Close()
+	var sys WlcInfo
+	json.NewDecoder(res.Body).Decode(&sys)
+	return sys, nil
 }
