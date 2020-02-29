@@ -38,27 +38,63 @@ func main() {
     if err != nil {
         log.Fatalf("%v", err)
     }
-    // Get AP Details Concurrently
-    var wg sync.WaitGroup
-    // Throttle the Number of Simultaneous Requests
-    sem := make(chan struct{}, 5)
-    var apDetails []cwlc.ApDetail
+    // Synchronous Example
     for _, ap := range aps {
-        sem <- struct{}{} // Add to the Semaphore
-        wg.Add(1)
-        go func(ap cwlc.AP) {
-            defer func() {
-                <-sem // Release the Resource
-                wg.Done()
-            }()
-            d, _ := wlc.GetApDetails(ap.MacAddr)
-            apDetails = append(apDetails, d)
-        }(ap)
+        d, _ := c.GetApDetails(ap.MacAddr)
+        fmt.Println("Synchronous call: " + d.IPAddr)
     }
-    wg.Wait()
+
+    // Concurrency Example
+    apDetail := make(chan cwlc.ApDetail)
+    go proc(aps, c, apDetail)
+    // This Blocks (sync) until all APDetails
+    // Are Received and the Channel is Closed (!ok)
+    for {
+        apd, ok := <- apDetail
+        if !ok {
+            // Channel is Closed
+            break
+        }
+        fmt.Println("Async: " + apd.IPAddr)
+    }
+    // Besides using an Infinite for loop like above
+    // You can "range" over the Streaming Data from
+    // The channel (which is more succinct)
+    // Comment out the below if using the Above
+    for ap := range apDetail {
+        fmt.Println("Async Streaming: " + ap.IPAddr)
+    }
+
     /**
         ApDetail = Name, MacAddr, IPAddr, RemoteSW, RemoteIntf ...
         Refer to cwlc.go for Type Declaration 
     */
+}
+
+func proc(aps []cwlc.AP, c *cwlc.Client, a chan cwlc.ApDetail) {
+    var wg sync.WaitGroup
+    // Limit Resource Usage by using the Semaphore Pattern
+    // Here we are only allowing 8 HTTP REQs at a time
+    sem := make(chan struct{}, 8)
+    for _, aps := range aps {
+        wg.Add(1)
+        sem <- struct{}{}
+        go func(ap cwlc.AP) {
+            defer func() {
+                // Release the Resource
+                <-sem
+                // Decrement our WaitGroup
+                wg.Done()
+            }()
+            // Make HTTP Request
+            apdetail, _ := c.GetApDetails(ap.MacAddr)
+            // Receive APDetail onto our Channel
+            // Which is a Pointer(*) to an APDetail
+            a <- apdetail
+        }(ap)
+    }
+    wg.Wait()
+    // Close the Channel
+    close(a)
 }
 ```
