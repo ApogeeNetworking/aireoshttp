@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
 	"time"
 )
 
@@ -68,13 +67,7 @@ func (c *Client) Login() error {
 	if err != nil {
 		return fmt.Errorf("request failed: %v", err)
 	}
-	scookie := res.Cookies()[0]
-	re := regexp.MustCompile(`sessionId=(\w+)`)
-	f := re.FindAllStringSubmatch(scookie.String(), -1)
-	c.cookie = &http.Cookie{
-		Name:  "sessionId",
-		Value: f[0][1],
-	}
+	c.cookie = res.Cookies()[0]
 	req.AddCookie(c.cookie)
 	// "Login One More Time" ... This seems to Activate the Cookie
 	res, err = c.http.Do(req)
@@ -124,7 +117,7 @@ type ApDetailRes struct {
 	Data ApDetail `json:"Data"`
 }
 
-// GetAp retrieves Detailed information of AP from Cisco WLC
+// GetApDetails retrieves Detailed information of AP from Cisco WLC
 func (c *Client) GetApDetails(mac string) (ApDetail, error) {
 	ep := "/data/rfdashboard/apview_general.html"
 	ep += "?deviceMacAddress=" + mac
