@@ -1,4 +1,4 @@
-module github.com/drkchiloll/cisco-wlc
+module github.com/drkchiloll/aireoshttp
 
 go 1.13
 

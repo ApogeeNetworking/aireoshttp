@@ -26,14 +26,19 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
+	// var mut sync.Mutex
 	aps, _ := c.GetAps()
-
+	fmt.Println(aps)
+	// var apDetails []aireoshttp.ApDetail
 	// Concurrency Example
-	apDetail := make(chan aireoshttp.ApDetail)
-	go proc(aps, c, apDetail)
-	for ap := range apDetail {
-		fmt.Println(ap)
-	}
+	// apDetail := make(chan aireoshttp.ApDetail)
+	// go proc(aps, c, apDetail)
+	// for ap := range apDetail {
+	// 	mut.Lock()
+	// 	apDetails = append(apDetails, ap)
+	// 	mut.Unlock()
+	// }
+	// fmt.Println(len(apDetails))
 	// for _, ap := range aps {
 	// 	d, _ := c.GetApDetails(ap.MacAddr)
 	// 	fmt.Println(d.IPAddr)
@@ -42,7 +47,7 @@ func main() {
 
 func proc(aps []aireoshttp.AP, c *aireoshttp.Client, a chan aireoshttp.ApDetail) {
 	var wg sync.WaitGroup
-	sem := make(chan struct{}, 8)
+	sem := make(chan struct{}, 10)
 	for _, ap := range aps {
 		wg.Add(1)
 		sem <- struct{}{}
