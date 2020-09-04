@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	aireoshttp "github.com/drkchiloll/cisco-wlc"
+	"github.com/ApogeeNetworking/aireoshttp"
 	"github.com/subosito/gotenv"
 )
 
